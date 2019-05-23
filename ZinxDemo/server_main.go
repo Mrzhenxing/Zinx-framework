@@ -4,7 +4,7 @@
 package main
 
 import (
-	"zinx/net"
+	"Zinx/zinx/net"
 )
 
 func main() {
