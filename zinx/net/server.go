@@ -19,6 +19,19 @@ type Server struct {
 	Name string
 }
 
+//定义一个 具体的回显业务 针对type HandleFunc func(*net.TCPConn,[]byte,int) error
+func CallBackBusi(conn *net.TCPConn, data []byte, cnt int) error {
+	//回显业务
+	fmt.Println("【conn Handle】 CallBack..")
+	if _, err := conn.Write(data[:cnt]);err !=nil {
+		fmt.Println("write back err ", err)
+		return err
+	}
+
+	return nil
+}
+
+
 //初始化的New方法
 func NewServer(name string) ziface.IServer{
 	s := &Server{
@@ -49,35 +62,27 @@ func (s *Server) Start() {
 		return
 	}
 
+	//生成id的累加器
+	var cid uint32
+	cid = 0
+
 	//3 阻塞等待客户端发送请求，
 	go func() {
 		for {
 			//阻塞等待客户端请求,
-			conn, err := listenner.Accept()//
+			conn, err := listenner.AcceptTCP()//只是针对TCP协议
 			if err != nil {
 				fmt.Println("Accept err", err)
 				continue
 			}
 
-			//此时conn就已经和对端客户端连接
-			go func() {
-				//4 客户端有数据请求，处理客户端业务(读、写)
-				for {
-					buf := make([]byte, 512)
-					cnt, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("recv buf err", err)//EOF
-						break
-					}
-					fmt.Printf("recv client buf %s, cnt = %d\n", buf, cnt)
+			//创建一个Connection对象
+			dealConn := NewConnection(conn, cid, CallBackBusi)
+			cid++
 
-					//回显功能 （业务）
-					if _, err := conn.Write(buf[:cnt]); err != nil {
-						fmt.Println("write back buf err", err)
-						continue
-					}
-				}
-			}()
+
+			//此时conn就已经和对端客户端连接
+			go dealConn.Start()
 		}
 	}()
 
