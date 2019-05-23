@@ -31,6 +31,6 @@ import "net"
  }
 
  //业务处理方法 抽象定义
- type HandleFunc func(*net.TCPConn,[]byte,int) error
+ type HandleFunc func(request IRequest) error
 
 

@@ -8,7 +8,7 @@ package net
 import (
 	"fmt"
 	"net"
-	"zinx/ziface"
+	"Zinx/zinx/ziface"
 )
 
 //具体的TCP链接模块
@@ -29,7 +29,7 @@ type Connection struct {
 /*
 初始化链接方法
  */
-func NewConnection(conn *net.TCPConn, connID uint32, callback_api ziface.HandleFunc) ziface.IConnection {
+func NewConnection(conn *net.TCPConn, connID uint32, callback_api ziface.HandleFunc) ziface.IConnection{
 	c := &Connection{
 		Conn:conn,
 		ConnID:connID,
@@ -55,8 +55,13 @@ func (c *Connection) StartReader() {
 			break
 		}
 
+		//server中New的是连接,连接中new的是数据,全部有关链接的都是server处理 全部有关数据的都是connection处理
+		//把当前一次性得到对端客户端请求数据封装成request
+		req:=NewRequest(c,buf,cnt)
+
+
 		//将数据 传递给我们 定义好的Handle Callback方法
-		if err := c.handleAPI(c.Conn, buf, cnt); err != nil {
+		if err := c.handleAPI(req); err != nil {
 			fmt.Println("ConnID", c.ConnID, "Handle is error", err)
 			break
 		}

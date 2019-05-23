@@ -6,7 +6,7 @@ package net
 import (
 	"fmt"
 	"net"
-	"zinx/ziface"
+	"Zinx/zinx/ziface"
 )
 
 type Server struct {
@@ -20,10 +20,14 @@ type Server struct {
 }
 
 //定义一个 具体的回显业务 针对type HandleFunc func(*net.TCPConn,[]byte,int) error
-func CallBackBusi(conn *net.TCPConn, data []byte, cnt int) error {
+func CallBackBusi(requset ziface.IRequest) error {
 	//回显业务
 	fmt.Println("【conn Handle】 CallBack..")
-	if _, err := conn.Write(data[:cnt]);err !=nil {
+	c:=requset.GetConnection().GetTCPConnection()
+	buf:=requset.GetData()
+	cnt:=requset.GetDateLen()
+
+	if _, err := c.Write(buf[:cnt]);err !=nil {
 		fmt.Println("write back err ", err)
 		return err
 	}
